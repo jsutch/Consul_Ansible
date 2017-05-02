@@ -1,0 +1,27 @@
+Install Notes
+
+-set target servers and keys into ssh config files and ansible hosts
+(alternately, bake the correct keys into Ansible or Chef scripts)
+
+-need to pre-accept ssh keys for this incarnation. This installation presumes this is complete.
+
+-Making the presumption that the systems, and apt, et al, are up-to-date with other needed binaries (python, et al). If we refactor, we can solve this by reprovisioning in Ansible.
+
+-Consul binaries not available from apt, so we'll need to download and host the package locally, as well as creating our own upstart conf and systemd service file. The version used is consul_0.7.5_linux_amd64 downloaded from Hashicorp.
+
+-There's the question as to whether it's preferable to use Hashicorp Atlas, but this implementation is manual.
+
+Implementation notes:
+-The implementation is for three nodes. If the number of server nodes needs to expand or work across datacenters, automating the creation of the config.json files would be useful. 
+
+-For quickness and clarity, I've distributed this among three different Ansible playbooks - one per server instance. It's possible to optimize this down to a single playbook with more work.
+
+-we've crafted several small (non-existent) services to watch for - one service with a single health check, one with multiple health checks, two with no health checks. This is simply to show an array of services
+
+-It wasn't clear from the instructions whether you preferred advertising services over the private interfaces. Since you might have a business reason for this, I've opted to set the configuration up only using public interfaces. It's possible to reconfigure this in a more secure manner, if you were using this for services inside an EC2 VPC, for example. 
+
+-There are a number of other optimizations we could also put in place to make elements easier to automate (new consul files, intake from build pipelines, etc). This implementation is designed to be straightforward for any engineer, versed or not in Ansible, to sort out what's going on.
+
+-updates to config.json or services can be edited locally, then updated with a separate ansible run. 
+
+-The challenge was to create a system with an openly accessible UI. It seems obvious to note that this setup isn't production ready and limited to authorized traffic.	

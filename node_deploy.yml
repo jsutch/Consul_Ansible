@@ -1,0 +1,88 @@
+---
+# This will config and manage NODE 1 and the SERVER 1 Config
+# - hosts: consul
+- hosts: install
+  vars: 
+  # Directory Targets
+    # Local
+    - local_config: /Users/person/Coding/Consul/Consul_Ansible/consul.d
+    - local_packages: /Users/person/Coding/Consul/Consul_Ansible/packages
+    - local_system_files: /Users/person/Coding/Consul/Consul_Ansible/
+    # Consul
+    - consul_config_dir: /etc/consul.d
+    - consul_server_config_dir: /etc/consul.d/server
+    - consul_data_dir: /var/consul
+    - consul_binary_dir: /usr/local/sbin
+    - temp_package_dir: /tmp/consul
+    # System
+    - systemd_dir: /etc/systemd/system
+    - run_dir: /run/consul
+    # Files to copy
+    - local_server_agent_config: config.json
+    - server_agent_config: config.json
+    - consul_install: consul_0.7.5_linux_amd64.zip
+    - systemd_service: consul.service
+
+  tasks:
+  # Consul binary and config setup
+  # Set up User
+    - name: Create consul user account
+      user: name=consul comment='Consul User' shell=/bin/bash generate_ssh_key=yes ssh_key_bits=2048 
+      # Install Packages
+    - name: Install unzip
+      apt: name={{ item }} state=installed
+      with_items: 
+      - unzip
+      - git
+
+      # Consul Install
+      # Check if Consul Binaries installed, skip if already installed
+    - stat: path=/usr/local/sbin/consul
+      register: consul_installed
+      tags: installed
+
+    - name: Create Temp Package Directory
+      file: path={{ temp_package_dir }} state=directory mode=755 owner=consul group=consul
+      when: consul_installed.stat.exists == False
+
+    - name: copy Consul binaries
+      copy: src={{ local_packages }}/{{consul_install}} dest={{ temp_package_dir }} owner=consul group=consul mode=0644 backup=yes
+      when: consul_installed.stat.exists == False
+
+    - name: Extract binary to target dir
+      command: unzip {{ temp_package_dir }}/{{ consul_install }} -d {{ consul_binary_dir }}/
+      when: consul_installed.stat.exists == False
+
+      # Set up configs
+    - name: Create Config Directory
+      file: path={{ consul_config_dir }} state=directory mode=755 owner=consul group=consul
+
+    # - name: Populate Service Configs
+    #   copy: src={{ local_config }}/web.json dest={{ consul_config_dir }} owner=consul group=consul mode=0644
+    - name: Populate Service Configs
+      copy: src={{ local_config }}/{{ item }} dest={{ consul_config_dir }} owner=consul group=consul mode=0644
+      with_items:
+      - web.json
+      - db.json
+      - service1.json
+      - service2.json
+
+    - name: Create Server Config Directory
+      file: path={{ consul_config_dir }}/server state=directory mode=755 owner=consul group=consul
+
+    - name: Populate Server Config
+      copy: src={{ local_config }}/server/{{ local_server_agent_config }} dest={{ consul_server_config_dir }}/{{ server_agent_config }} owner=consul group=consul mode=0644
+
+    - name: Create data directory
+      file: path={{ consul_data_dir }} state=directory mode=755 owner=consul group=consul
+
+    # Set up SystemD Service
+    - name: Create Run Directory
+      file: path={{ run_dir }} state=directory mode=755 owner=consul group=consul
+
+    - name: Copy SystemD file into place
+      copy: src={{ local_system_files }}/{{ systemd_service }} dest={{ systemd_dir }} owner=root group=root mode=0644 backup=yes
+
+      # Startup service and join to cluster
+    - name: Start Consul
+      service: name=consul state=started

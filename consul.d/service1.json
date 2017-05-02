@@ -1,0 +1,16 @@
+{
+  "service": {
+    "name": "testweb",
+    "tags": ["primary","production","service1-west"],
+    "address": "",
+    "port": 8500,
+    "enableTagOverride": false,
+	"check": {
+	    "id": "httpcheck",
+	    "name": "HTTP check on port 8500",
+	    "http": "http://10.128.21.10:8500",
+	    "interval": "10s",
+	    "timeout": "1s"
+	  }
+	}
+}

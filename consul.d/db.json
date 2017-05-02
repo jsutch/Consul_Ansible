@@ -1,0 +1,1 @@
+{"service": {"name": "db", "tags": ["mysql"], "port": 8889}}

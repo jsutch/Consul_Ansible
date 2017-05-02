@@ -1,0 +1,25 @@
+{
+  "service": {
+    "name": "multicheck",
+    "tags": ["primary","production","service1-west"],
+    "address": "10.128.21.10",
+    "port": 8500,
+    "enableTagOverride": false,
+	"checks": [
+	    {
+		    "id": "httpcheck",
+	    	"name": "HTTP check on port 8500",
+	    	"http": "http://10.128.21.10:8500",
+		    "interval": "10s",
+		    "timeout": "1s"
+	    },
+		{
+		    "id": "ssh",
+		    "name": "SSH TCP on port 22",
+		    "tcp": "localhost:22",
+		    "interval": "10s",
+		    "timeout": "1s"
+		}
+	  ]
+	}
+}
