@@ -16,7 +16,7 @@ $ansible-playbook server_deploy.yml --check should return specifics about the st
 
 ## Contributors
 
-jeff.sutch@acm.org
+jsdev@collettpark.com
 
 ## License
 Ansible is licensed under GNU General Public License version 3.
